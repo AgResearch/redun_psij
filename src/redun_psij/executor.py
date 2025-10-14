@@ -28,7 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-redun_namespace = "redun-psij"
+redun_namespace = "redun_psij"
 
 
 class JobError(Exception):

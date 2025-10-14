@@ -1,5 +1,5 @@
 {
-  description = "Flake for redun-psij";
+  description = "Flake for redun_psij";
   inputs = {
     # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/25.05"; # until eRI supports later than Nix 2.17 😢
@@ -67,7 +67,7 @@
 
           redun-psij = with pkgs;
             python3Packages.buildPythonPackage {
-              pname = "redun-psij";
+              pname = "redun_psij";
               version = pyproject.project.version;
               src = ./.;
               pyproject = true;

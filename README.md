@@ -1,4 +1,4 @@
-# redun-psij-executor
+# redun_psij
 
 This package enables Redun tasks to be scheduled on any job scheduler supported by PSI/J, which includes Slurm, PBS, LFS among others.
 

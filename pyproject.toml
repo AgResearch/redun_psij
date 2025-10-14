@@ -1,5 +1,5 @@
 [project]
-name = "redun-psij-executor"
+name = "redun_psij"
 version = "0.1.0a1"
 description = "PSI/J Executor for Redun"
 readme = "README.md"
@@ -17,7 +17,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
-packages = ["src/redun-psij"]
+packages = ["src/redun_psij"]
 
 [tool.pyright]
 reportUnusedCallResult = "warning"

@@ -1,4 +1,4 @@
-# public interface for redun-psij
+# public interface for redun_psij
 
 from .executor import (
     CommonJobSpec,
