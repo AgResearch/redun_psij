@@ -1,5 +1,5 @@
 {
-  description = "Flake for redun-psij-executor";
+  description = "Flake for redun-psij";
   inputs = {
     # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/25.05"; # until eRI supports later than Nix 2.17 😢
@@ -56,11 +56,18 @@
                 ];
             };
 
+          python-dependencies = with pkgs.python3Packages;
+            [
+              jsonnet
+              flakePkgs.redun
+              psij-python
+            ];
+
           pyproject = builtins.fromTOML (builtins.readFile ./pyproject.toml);
 
-          redun-psij-executor = with pkgs;
+          redun-psij = with pkgs;
             python3Packages.buildPythonPackage {
-              pname = "redun-psij-executor";
+              pname = "redun-psij";
               version = pyproject.project.version;
               src = ./.;
               pyproject = true;
@@ -70,10 +77,7 @@
                 python3Packages.hatchling
               ];
 
-              propagatedBuildInputs = [
-                psij-python
-                flakePkgs.redun
-              ];
+              propagatedBuildInputs = python-dependencies;
             };
 
         in
@@ -84,10 +88,7 @@
               {
                 buildInputs =
                   let
-                    python-with-dependencies = (pkgs.python3.withPackages (ps: [
-                      psij-python
-                      flakePkgs.redun
-                    ]));
+                    python-with-dependencies = (pkgs.python3.withPackages (ps: python-dependencies));
                   in
                   [
                     bashInteractive
@@ -106,9 +107,9 @@
 
           packages = {
             # The default package is the unbundled Python package for use in other flakes.
-            default = redun-psij-executor;
+            default = redun-psij;
 
-            inherit redun-psij-executor psij-python;
+            inherit redun-psij psij-python;
           };
 
           apps = {
@@ -119,7 +120,7 @@
 
             tests = let test-environment = python3.withPackages (ps: [ ps.pytest ]); in {
               type = "app";
-              program = "${writeShellScript "redun-psij-executor-tests" ''
+              program = "${writeShellScript "redun-psij-tests" ''
                 export PATH=${pkgs.lib.makeBinPath [test-environment]}
                 export PYTHONPATH=$(pwd)/src:$PYTHONPATH
                 pytest src

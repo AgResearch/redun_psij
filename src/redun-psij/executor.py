@@ -20,7 +20,7 @@ from psij import (
 from psij.executors.batch.batch_scheduler_executor import BatchSchedulerExecutorConfig
 from typing import Any, Optional
 
-from agr.util import singleton
+from .singleton import singleton
 
 # TODO remove
 import logging
@@ -28,15 +28,15 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-redun_namespace = "agr.redun"
+redun_namespace = "redun-psij"
 
 
-class ClusterExecutorError(Exception):
+class JobError(Exception):
     def __init__(self, message: str):
         super().__init__(message)
 
 
-class ClusterExecutorJobFailure:
+class JobFailure:
     """
     This needs to contain the stderr as an actual file
     so that deleting that file will trigger redun to rerun the failed task.
@@ -169,7 +169,7 @@ def _create_job_attributes(
 def _create_job_spec(
     spec: CommonJobSpec,
 ) -> tuple[JobSpec, str]:
-    tool_config, config_path = get_tool_config_and_path(spec.tool)
+    tool_config, config_path = _get_tool_config_and_path(spec.tool)
     try:
         executor_name = tool_config["executor"]
         job_prefix = tool_config.get("job_prefix", "")
@@ -220,7 +220,7 @@ def _create_executor(executor_name: str):
     )
 
 
-def job_description(
+def _job_description(
     job: Job,
     spec: CommonJobSpec,
     annotation: Optional[str] = None,
@@ -242,14 +242,14 @@ def _handle_failure(
     status: JobStatus | None,
     spec: CommonJobSpec,
     failure_handler: _FailureHandler,
-) -> Optional[ClusterExecutorJobFailure]:
+) -> Optional[JobFailure]:
     """On failure raise an exception, unless handle_job_failure, in which case, return the failure."""
     if status is None:
         logger.debug(f"job {job.native_id} status is None")
-        raise ClusterExecutorError(f"job {job.native_id} status is None")
+        raise JobError(f"job {job.native_id} status is None")
     elif status.state == JobState.CANCELED:
         logger.debug(f"job {job.native_id} canceled")
-        raise ClusterExecutorError(f"job {job.native_id} canceled")
+        raise JobError(f"job {job.native_id} canceled")
     elif status.state == JobState.FAILED:
         try:
             with open(spec.stderr_path, "r") as stderr_f:
@@ -276,7 +276,7 @@ def _handle_failure(
             else ""
         )
         logger.debug(
-            f"{job_description(job, spec, annotation=failure_text)} {metadata_text}: {stderr_text}"
+            f"{_job_description(job, spec, annotation=failure_text)} {metadata_text}: {stderr_text}"
         )
 
         if (
@@ -287,11 +287,9 @@ def _handle_failure(
             # It is important that we only return failure when the stderr file actually exists,
             # otherwise there's no way to trigger a rerun after fixing whatever was broken.
             # Simply deleting the stderr file should be enough of a trigger.
-            return ClusterExecutorJobFailure(
-                exit_code=status.exit_code, stderr=File(spec.stderr_path)
-            )
-        raise ClusterExecutorError(
-            f"{job_description(job, spec, annotation=failure_text, multiline=True)}\nmetadata: {metadata_text}\n{stderr_text}"
+            return JobFailure(exit_code=status.exit_code, stderr=File(spec.stderr_path))
+        raise JobError(
+            f"{_job_description(job, spec, annotation=failure_text, multiline=True)}\nmetadata: {metadata_text}\n{stderr_text}"
         )
     return None
 
@@ -299,7 +297,7 @@ def _handle_failure(
 def _run_job_1(
     spec: Job1Spec,
     failure_handler: _FailureHandler,
-) -> File | ClusterExecutorJobFailure:
+) -> File | JobFailure:
     """
     Run a job on the defined cluster, which is expected to produce the single file `expected_path`
     """
@@ -316,8 +314,8 @@ def _run_job_1(
         return failure
     else:
         if not os.path.exists(spec.expected_path):
-            raise ClusterExecutorError(
-                job_description(
+            raise JobError(
+                _job_description(
                     job,
                     spec,
                     annotation=f"failed to create {spec.expected_path}",
@@ -341,7 +339,7 @@ def run_job_1(
 
 def run_job_1_returning_failure(
     spec: Job1Spec,
-) -> File | ClusterExecutorJobFailure:
+) -> File | JobFailure:
     """
     Run a job on the defined cluster, which is expected to produce the single file `expected_path`
     """
@@ -367,8 +365,8 @@ def _result_files(
         if not os.path.exists(path):
             missing_required_paths[k] = path
     if missing_required_paths:
-        raise ClusterExecutorError(
-            job_description(
+        raise JobError(
+            _job_description(
                 job,
                 spec,
                 annotation="failed to create %s"
@@ -401,7 +399,7 @@ def _result_files(
 def _run_job_n(
     spec: JobNSpec,
     failure_handler: _FailureHandler,
-) -> ResultFiles | ClusterExecutorJobFailure:
+) -> ResultFiles | JobFailure:
     """
     Run a job on the defined cluster, which is expected to produce files matching `result_glob`
     """
@@ -431,7 +429,7 @@ def _run_job_n(
 
 def run_job_n_returning_failure(
     spec: JobNSpec,
-) -> ResultFiles | ClusterExecutorJobFailure:
+) -> ResultFiles | JobFailure:
     """
     Run a job on the defined cluster, which is expected to produce files matching `result_glob`
     """
@@ -449,7 +447,7 @@ def run_job_n(
     return result_files
 
 
-def deep_get(values: Any, path: str, default: Any = None) -> Any:
+def _deep_get(values: Any, path: str, default: Any = None) -> Any:
     for selector in path.split("."):
         values = values.get(selector)
         if values is None:
@@ -457,14 +455,12 @@ def deep_get(values: Any, path: str, default: Any = None) -> Any:
     return values
 
 
-CLUSTER_EXECUTOR_CONFIG_PATH = os.environ.get(
-    "CLUSTER_EXECUTOR_CONFIG_PATH", "."
-).split(":")
+PSIJ_EXECUTOR_CONFIG_PATH = os.environ.get("PSIJ_EXECUTOR_CONFIG_PATH", ".").split(":")
 
 
-def jsonnet_import_callback(base, rel):
-    logger.debug(f"jsonnet_import_callback({base}, {rel})")
-    for import_dir in CLUSTER_EXECUTOR_CONFIG_PATH:
+def _jsonnet_import_callback(base, rel):
+    logger.debug(f"_jsonnet_import_callback({base}, {rel})")
+    for import_dir in PSIJ_EXECUTOR_CONFIG_PATH:
         import_path = os.path.join(import_dir, rel)
         try:
             with open(import_path, "rb") as f:
@@ -472,12 +468,12 @@ def jsonnet_import_callback(base, rel):
         except FileNotFoundError:
             pass
     raise FileNotFoundError(
-        f"jsonnet import {rel} not found on path {CLUSTER_EXECUTOR_CONFIG_PATH}"
+        f"jsonnet import {rel} not found on path {PSIJ_EXECUTOR_CONFIG_PATH}"
     )
 
 
 @singleton
-class ClusterExecutorConfig:
+class PsijExecutorConfig:
     def __init__(self):
         self._configured = False
         self._path = None
@@ -486,18 +482,18 @@ class ClusterExecutorConfig:
     def path(self) -> str:
         assert (
             self._path is not None
-        ), "ClusterExecutorConfig is not configured, need an early call to read_config()"
+        ), "PsijExecutorConfig is not configured, need an early call to read_config()"
 
         return self._path
 
     def read_config(self):
-        CONFIG = "cluster-executor.jsonnet"
+        CONFIG = "psij-executor.jsonnet"
         # attempt to read config file from somewhere on the path
-        for config_dir in CLUSTER_EXECUTOR_CONFIG_PATH:
+        for config_dir in PSIJ_EXECUTOR_CONFIG_PATH:
             path = os.path.join(config_dir, CONFIG)
             try:
                 with open(path, "r") as config_f:
-                    logger.debug(f"ClusterExecutorConfig path = {path}")
+                    logger.debug(f"PsijExecutorConfig path = {path}")
                     self._path = path
                     raw_config = config_f.read()
             except FileNotFoundError:
@@ -505,7 +501,7 @@ class ClusterExecutorConfig:
 
             try:
                 json_config = _jsonnet.evaluate_snippet(
-                    path, raw_config, import_callback=jsonnet_import_callback
+                    path, raw_config, import_callback=_jsonnet_import_callback
                 )
                 self._config = json.loads(json_config)
             except Exception as ex:
@@ -517,19 +513,18 @@ class ClusterExecutorConfig:
             return
 
         raise ConfigError(
-            message=f"can't find {CONFIG} in {':'.join(CLUSTER_EXECUTOR_CONFIG_PATH)}"
+            message=f"can't find {CONFIG} in {':'.join(PSIJ_EXECUTOR_CONFIG_PATH)}"
         )
 
     def get(self, path: str, default: Any = None) -> Any:
-        assert (
-            self._configured
-        ), "ClusterExecutorConfig is not configured, need an early call to read_config()"
-        return deep_get(self._config, path, default=default)
+        if not self._configured:
+            self.read_config()
+        return _deep_get(self._config, path, default=default)
 
 
-def get_tool_config_and_path(tool: str) -> tuple[dict[str, Any], str]:
-    """Return tool config and config path, assuming the singleton object has been configured."""
-    config = ClusterExecutorConfig()
+def _get_tool_config_and_path(tool: str) -> tuple[dict[str, Any], str]:
+    """Get tool config and config path from the singleton config object."""
+    config = PsijExecutorConfig()
     tool_config = config.get("tools.default", {}) | config.get(f"tools.{tool}", {})
     logger.info(f"{tool} config: {tool_config}")
     return tool_config, config.path
@@ -537,13 +532,4 @@ def get_tool_config_and_path(tool: str) -> tuple[dict[str, Any], str]:
 
 def get_tool_config(tool: str) -> dict[str, Any]:
     """Return tool config only."""
-    return get_tool_config_and_path(tool)[0]
-
-
-def create_cluster_executor_config():
-    """
-    Create the cluster executor configuration.
-    Must be done before any configuration may be accessed.
-    """
-    cluster_config = ClusterExecutorConfig()
-    cluster_config.read_config()
+    return _get_tool_config_and_path(tool)[0]
