@@ -13,11 +13,11 @@ from psij import (
     Job,
     JobAttributes,
     JobExecutor,
+    JobExecutorConfig,
     JobSpec,
     JobState,
     JobStatus,
 )
-from psij.executors.batch.batch_scheduler_executor import BatchSchedulerExecutorConfig
 from typing import Any, Optional
 
 from .singleton import singleton
@@ -26,7 +26,6 @@ from .singleton import singleton
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 redun_namespace = "redun_psij"
 
@@ -205,19 +204,12 @@ def _create_job_spec(
 
 def _create_executor(executor_name: str):
     # PSI/J defaults to home directory, which is not what we want
-    cwd = os.getcwd()
-    psij_dir = os.path.join(cwd, ".psij")
+    psij_dir = os.path.join(os.getcwd(), ".psij")
+    os.makedirs(psij_dir, exist_ok=True)
 
-    return JobExecutor.get_instance(
-        executor_name,
-        # alas we really do need to instantiate a BatchSchedulerExecutorConfig rather than a JobExecutorConfig,
-        # because the latter is an abstract base class which does not set the required defaults like initial_queue_polling_delay
-        # https://github.com/ExaWorks/psij-python/issues/511
-        config=BatchSchedulerExecutorConfig(
-            launcher_log_file=Path(psij_dir),
-            work_directory=Path(cwd),
-        ),
-    )
+    config = JobExecutorConfig(work_directory=Path(psij_dir))
+
+    return JobExecutor.get_instance(executor_name, config=config)
 
 
 def _job_description(

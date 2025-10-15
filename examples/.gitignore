@@ -2,4 +2,4 @@
 /.redun/
 /out/
 *.log
-/slurm/
+/.psij/
