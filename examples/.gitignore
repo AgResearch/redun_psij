@@ -1,3 +1,4 @@
 /.direnv/
+/.redun/
 /out/
 *.log

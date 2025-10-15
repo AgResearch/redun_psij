@@ -1,7 +1,8 @@
 {
   description = "Demo flake for using redun_psij";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/25.05"; # until eRI supports later than Nix 2.17 😢
 
     flake-utils.url = "github:numtide/flake-utils";
     redun = {
@@ -74,6 +75,7 @@
 
                 shellHook = ''
                   export PYTHONPATH=$(pwd)/src:$PYTHONPATH
+                  export PSIJ_EXECUTOR_CONFIG_PATH=$(pwd)/config
                 '';
               };
           };
