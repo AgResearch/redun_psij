@@ -29,7 +29,7 @@ _ZIP = "zip"
 
 
 def _fastqc_job_spec(
-    in_path: str, out_dir: str, job_context: JobContext, num_threads: int = 8
+    in_path: str, out_dir: str, job_context: JobContext, num_threads: int = 2
 ) -> JobNSpec:
     basename = os.path.basename(in_path).removesuffix(".gz").removesuffix(".fastq")
     log_path = os.path.join(

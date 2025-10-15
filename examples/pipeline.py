@@ -2,7 +2,7 @@ import logging
 from redun import task, File
 from redun_psij import JobContext
 
-from example.tasks import fastqc, multiqc, fastq_generator
+from example.tasks import fastqc_one, multiqc, fastq_generator
 
 redun_namespace = "example"
 
@@ -18,12 +18,18 @@ logging.basicConfig(
 
 @task()
 def main(
-    seqlen: int,
-    numseq: int,
+    seqlen: int = 300,
+    numseq: int = 1000,
 ) -> list[File]:
     job_context = JobContext()
     out_dir = "out"
 
-    fastq = fastq_generator(seqlen, numseq, out_dir)
+    fastq_file = fastq_generator(seqlen, numseq, out_dir)
 
-    return [fastq]
+    fastqc_outputs = fastqc_one(
+        fastq_file,
+        out_dir=out_dir,
+        job_context=job_context,
+    )
+
+    return [fastq_file]
