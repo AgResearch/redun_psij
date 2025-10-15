@@ -2,3 +2,4 @@
 /.redun/
 /out/
 *.log
+/slurm/

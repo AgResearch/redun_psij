@@ -1,4 +1,6 @@
 import logging
+import os
+import os.path
 from redun import task, File
 from redun_psij import JobContext
 from typing import Tuple
@@ -23,7 +25,7 @@ def main(
     numseq: int = 1000,
 ) -> Tuple[File, FastqcOutput]:
     job_context = JobContext()
-    out_dir = "out"
+    out_dir = os.path.join(os.getcwd(), "out")
 
     fastq_file = fastq_generator(seqlen, numseq, out_dir)
 
