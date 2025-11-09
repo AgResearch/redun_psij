@@ -22,11 +22,6 @@ from typing import Any, Optional
 
 from .singleton import singleton
 
-# TODO remove
-import logging
-
-logger = logging.getLogger(__name__)
-
 redun_namespace = "redun_psij"
 
 
@@ -160,7 +155,6 @@ def _create_job_attributes(
     attributes = (
         configured_attributes | duration_attribute | augmented_custom_attributes
     )
-    logger.info(f"job_attributes: {attributes}")
 
     return JobAttributes(**attributes)
 
@@ -237,10 +231,8 @@ def _handle_failure(
 ) -> Optional[JobFailure]:
     """On failure raise an exception, unless handle_job_failure, in which case, return the failure."""
     if status is None:
-        logger.debug(f"job {job.native_id} status is None")
         raise JobError(f"job {job.native_id} status is None")
     elif status.state == JobState.CANCELED:
-        logger.debug(f"job {job.native_id} canceled")
         raise JobError(f"job {job.native_id} canceled")
     elif status.state == JobState.FAILED:
         try:
@@ -266,9 +258,6 @@ def _handle_failure(
             " ".join(["%s=%s" % (k, str(v)) for k, v in status.metadata])
             if status.metadata is not None
             else ""
-        )
-        logger.debug(
-            f"{_job_description(job, spec, annotation=failure_text)} {metadata_text}: {stderr_text}"
         )
 
         if (
@@ -451,7 +440,6 @@ PSIJ_EXECUTOR_CONFIG_PATH = os.environ.get("PSIJ_EXECUTOR_CONFIG_PATH", ".").spl
 
 
 def _jsonnet_import_callback(base, rel):
-    logger.debug(f"_jsonnet_import_callback({base}, {rel})")
     for import_dir in PSIJ_EXECUTOR_CONFIG_PATH:
         import_path = os.path.join(import_dir, rel)
         try:
@@ -485,7 +473,6 @@ class PsijExecutorConfig:
             path = os.path.join(config_dir, CONFIG)
             try:
                 with open(path, "r") as config_f:
-                    logger.debug(f"PsijExecutorConfig path = {path}")
                     self._path = path
                     raw_config = config_f.read()
             except FileNotFoundError:
@@ -518,7 +505,6 @@ def _get_tool_config_and_path(tool: str) -> tuple[dict[str, Any], str]:
     """Get tool config and config path from the singleton config object."""
     config = PsijExecutorConfig()
     tool_config = config.get("tools.default", {}) | config.get(f"tools.{tool}", {})
-    logger.info(f"{tool} config: {tool_config}")
     return tool_config, config.path
 
 
