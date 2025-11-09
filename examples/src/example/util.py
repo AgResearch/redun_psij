@@ -1,4 +1,6 @@
 import os.path
+from redun import task
+from typing import Any, Callable
 
 
 def baseroot(path: str) -> str:
@@ -11,3 +13,9 @@ def baseroot(path: str) -> str:
         return basename[:dot]
     else:
         return basename
+
+
+@task()
+def lazy_map(x: Any, f: Callable[[Any], Any]) -> Any:
+    """Map f over the expression `x`."""
+    return f(x)

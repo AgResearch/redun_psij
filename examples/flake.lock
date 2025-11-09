@@ -78,11 +78,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1760396736,
-        "narHash": "sha256-AtfxqNIshJQmJovBDTQ/tFcCiq+KOlTGVeDWv6ohv+M=",
+        "lastModified": 1762720831,
+        "narHash": "sha256-4kIfMngG3enTCPAc6C4OQqR66tzp6QTGq+7F8l8jXfk=",
         "owner": "AgResearch",
         "repo": "redun.nix",
-        "rev": "f9d8940ececbe7d72f9570000532226ed82f7877",
+        "rev": "98c49934de92f2d2f8a7340366328c50dc28a49a",
         "type": "github"
       },
       "original": {
@@ -104,12 +104,12 @@
       },
       "locked": {
         "lastModified": 0,
-        "narHash": "sha256-JSouLD45jJ4QZVax3wYkJD7rMgZuNycFjN5uBK+qi+s=",
-        "path": "/nix/store/nz97sjhzm7q8275i49kxj5rizvaavpbj-source",
+        "narHash": "sha256-5apjYcstrLGFNJUVHI1NCKwmK3I3z9cEgejgVqRbKfk=",
+        "path": "/nix/store/4dfdhybqggdvwk2x97q7llfjlmpm87qn-source",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/nz97sjhzm7q8275i49kxj5rizvaavpbj-source",
+        "path": "/nix/store/4dfdhybqggdvwk2x97q7llfjlmpm87qn-source",
         "type": "path"
       }
     },
