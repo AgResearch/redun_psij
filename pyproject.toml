@@ -1,6 +1,6 @@
 [project]
 name = "redun_psij"
-version = "0.1.0a1"
+version = "0.1.1"
 description = "PSI/J Executor for Redun"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -10,6 +10,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
+dependencies = ["redun", "psij-python", "jsonnet"]
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx-autobuild", "sphinx-rtd-theme"]
