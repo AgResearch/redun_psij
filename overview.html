@@ -1,0 +1,112 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview &mdash; redun_psij  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="redun_psij" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            redun_psij
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">redun_psij</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/overview.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
+<p>The two main entrypoints are <a class="reference internal" href="api.html#redun_psij.run_job_1" title="redun_psij.run_job_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">redun_psij.run_job_1()</span></code></a> for running a job which is expected to produce a single file whose path is known in advance (<a class="reference external" href="https://github.com/AgResearch/redun_psij/blob/main/examples/src/example/tasks/multiqc.py">example run_job_1 usage</a>), and <a class="reference internal" href="api.html#redun_psij.run_job_n" title="redun_psij.run_job_n"><code class="xref py py-func docutils literal notranslate"><span class="pre">redun_psij.run_job_n()</span></code></a> for a job which may produce several files, or files which may be matched after-the-event by globbing (<a class="reference external" href="https://github.com/AgResearch/redun_psij/blob/main/examples/src/example/tasks/fastqc.py">example run_job_n usage</a>).</p>
+<p>Job specs are defined in <a class="reference external" href="https://jsonnet.org/">Jsonnet</a> as per this <a class="reference external" href="https://github.com/AgResearch/redun_psij/blob/main/examples/config/psij-executor.jsonnet">example</a>.  The colon-separated environment variable <code class="docutils literal notranslate"><span class="pre">PSIJ_EXECUTOR_CONFIG_PATH</span></code> is the search path for Jsonnet files, the root configuration being defined in <code class="docutils literal notranslate"><span class="pre">psij-executor.jsonnet</span></code>. The <code class="docutils literal notranslate"><span class="pre">job_attributes</span></code> field is a <a class="reference external" href="https://exaworks.org/psij-python/docs/v/0.9.11/.generated/tree.html#jobattributes">PSI/J JobAttributes instance</a>.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="redun_psij" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Simon Guest.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
