@@ -2,6 +2,8 @@ import os.path
 from redun import task
 from typing import Any, Callable
 
+redun_namespace = "example.util"
+
 
 def baseroot(path: str) -> str:
     """
