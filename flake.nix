@@ -73,8 +73,7 @@
               pyproject = true;
 
               nativeBuildInputs = [
-                hatch
-                python3Packages.hatchling
+                python3Packages.flit
               ];
 
               propagatedBuildInputs = python-dependencies;
@@ -92,8 +91,8 @@
                   in
                   [
                     bashInteractive
-                    hatch
                     python-with-dependencies
+                    python3Packages.flit
                     python3Packages.pytest
                     jsonnet
                   ];

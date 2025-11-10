@@ -65,7 +65,6 @@
                   in
                   [
                     bashInteractive
-                    hatch
                     python-with-dependencies
                     jsonnet
                     fastq_generator
