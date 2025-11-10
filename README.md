@@ -6,7 +6,7 @@ It is not tightly integrated into Redun, and therefore has a different flavour t
 
 ## Installation
 
-The package is pure Python with its only dependencies being [redun](https://insitro.github.io/redun/index.html) and [PSI/J](https://exaworks.org/psij-python/index.html).  It is available on PyPI or as Nix flake.
+The package is pure Python with its only dependencies being [redun](https://insitro.github.io/redun/index.html), [PSI/J](https://exaworks.org/psij-python/index.html), and [Jsonnet](https://jsonnet.org/).  It is available on PyPI as [redun_psij](https://pypi.org/project/redun_psij/) or as Nix flake.
 
 ## Features
 
