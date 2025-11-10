@@ -11,6 +11,9 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
+[project.optional-dependencies]
+docs = ["sphinx", "sphinx-autobuild", "sphinx-rtd-theme"]
+
 [build-system]
 requires = ["flit_core >= 3.2,<4"]
 build-backend = "flit_core.buildapi"

@@ -20,19 +20,23 @@ from psij import (
 )
 from typing import Any, Optional
 
-from .singleton import singleton
+from ._singleton import singleton
 
 redun_namespace = "redun_psij"
 
 
 class JobError(Exception):
+    """Executor job error."""
+
     def __init__(self, message: str):
         super().__init__(message)
 
 
 class JobFailure:
     """
-    This needs to contain the stderr as an actual file
+    Returned by :func:`redun_psij.run_job_1_returning_failure` and :func:`redun_psij.run_job_n_returning_failure` on error, rather than throwing an exception.
+
+    Contains stderr as an actual file
     so that deleting that file will trigger redun to rerun the failed task.
     """
 
@@ -51,6 +55,8 @@ class _FailureHandler(Enum):
 
 
 class ConfigError(Exception):
+    """Executor configuration error."""
+
     def __init__(
         self,
         message: str,
@@ -81,14 +87,25 @@ class ConfigError(Exception):
 
 @dataclass(kw_only=True)
 class CommonJobSpec:
-    """The spec in common for any job to run on the compute cluster."""
+    """The spec in common for :class:`redun_psij.Job1Spec` and :class:`redun_psij.JobNSpec`."""
 
     tool: str
+    """The tool name, to be found in the job configuration file."""
+
     args: list[str]
+    """Command and its arguments."""
+
     stdout_path: str
+    """Path to file which captures stdout of the job."""
+
     stderr_path: str
+    """Path to file which captures stderr of the job."""
+
     cwd: Optional[str] = None
+    """Optional directory to change to before running the job."""
+
     custom_attributes: dict[str, str] = field(default_factory=dict)
+    """Custom attributes to pass to PSI/J, e.g. from :class:`redun_psij.JobContext`."""
 
 
 @dataclass(kw_only=True)
@@ -96,6 +113,7 @@ class Job1Spec(CommonJobSpec):
     """For jobs which produce a single file whose path is known in advance."""
 
     expected_path: str
+    """Path of the single expected output file, it being an error if this is not created by the job."""
 
 
 @dataclass
@@ -103,13 +121,19 @@ class FilteredGlob:
     """A file glob optionally without any paths matched by `reject_re`."""
 
     glob: str
+    """File glob to match job output files."""
+
     reject_re: Optional[str] = None
+    """Regular expression in Python regex syntax to exclude unwanted glob matches."""
 
 
 @dataclass(kw_only=True)
 class ExpectedPaths:
     required: dict[str, str] = field(default_factory=dict)
+    """Paths of any expected output files which are required to be created by the job.  Any missing file constitutes an error.  Keys are arbitrary strings and may be used to match up output files with what was expected."""
+
     optional: dict[str, str] = field(default_factory=dict)
+    """As per required where failure to create a file is not an error."""
 
 
 @dataclass(kw_only=True)
@@ -123,7 +147,10 @@ class JobNSpec(CommonJobSpec):
 
     # each value is either a result path or a filtered glob
     expected_paths: ExpectedPaths = field(default_factory=ExpectedPaths)
+    """Expected output files whose paths are known in advance."""
+
     expected_globs: dict[str, FilteredGlob] = field(default_factory=dict)
+    """Expected output files whose paths are globbed after the event."""
 
 
 def _create_job_attributes(
@@ -280,7 +307,7 @@ def _run_job_1(
     failure_handler: _FailureHandler,
 ) -> File | JobFailure:
     """
-    Run a job on the defined cluster, which is expected to produce the single file `expected_path`
+    Run a job which is expected to produce the single file `expected_path`
     """
     job_spec, executor_name = _create_job_spec(
         spec=spec,
@@ -311,7 +338,11 @@ def run_job_1(
     spec: Job1Spec,
 ) -> File:
     """
-    Run a job on the defined cluster, which is expected to produce the single file `expected_path`
+    Run a job which is expected to produce the single file `expected_path`
+    Errors are thrown as :class:`redun_psij.JobError`.
+
+    Args:
+        spec: defines the job parameters
     """
     result = _run_job_1(spec, failure_handler=_FailureHandler.EXCEPTION)
     assert isinstance(result, File)
@@ -322,15 +353,24 @@ def run_job_1_returning_failure(
     spec: Job1Spec,
 ) -> File | JobFailure:
     """
-    Run a job on the defined cluster, which is expected to produce the single file `expected_path`
+    Run a job which is expected to produce the single file `expected_path`
+    Errors are returned as :class:`redun_psij.JobFailure`.
+
+    Args:
+        spec: defines the job parameters
     """
     return _run_job_1(spec, failure_handler=_FailureHandler.RETURN)
 
 
 @dataclass
 class ResultFiles:
+    """The output files produced by :func:`redun_psij.run_job_n`."""
+
     expected_files: dict[str, File]
+    """Files as defined by :class:`redun_psij.ExpectedPaths`."""
+
     globbed_files: dict[str, list[File]]
+    """Files as defined by :class:`redun_psij.FilteredGlob`."""
 
 
 def _result_files(
@@ -382,7 +422,7 @@ def _run_job_n(
     failure_handler: _FailureHandler,
 ) -> ResultFiles | JobFailure:
     """
-    Run a job on the defined cluster, which is expected to produce files matching `result_glob`
+    Run a job which is expected to produce files matching `result_glob`
     """
 
     # check no duplicates between required and optional expected paths
@@ -408,24 +448,31 @@ def _run_job_n(
         return _result_files(job, spec, spec.expected_paths, spec.expected_globs)
 
 
-def run_job_n_returning_failure(
-    spec: JobNSpec,
-) -> ResultFiles | JobFailure:
-    """
-    Run a job on the defined cluster, which is expected to produce files matching `result_glob`
-    """
-    return _run_job_n(spec, failure_handler=_FailureHandler.RETURN)
-
-
 def run_job_n(
     spec: JobNSpec,
 ) -> ResultFiles:
     """
-    Run a job on the defined cluster, which is expected to produce files matching `result_glob`
+    Run a job which is expected to produce files matching :class:`redun_psij.ResultFiles`
+
+    Errors are thrown as :class:`redun_psij.JobError`.
     """
     result_files = _run_job_n(spec, failure_handler=_FailureHandler.EXCEPTION)
     assert isinstance(result_files, ResultFiles)
     return result_files
+
+
+def run_job_n_returning_failure(
+    spec: JobNSpec,
+) -> ResultFiles | JobFailure:
+    """
+    Run a job which is expected to produce files matching :class:`redun_psij.ResultFiles`
+
+    Errors are returned as :class:`redun_psij.JobFailure`.
+
+    Args:
+        spec: defines the job parameters
+    """
+    return _run_job_n(spec, failure_handler=_FailureHandler.RETURN)
 
 
 def _deep_get(values: Any, path: str, default: Any = None) -> Any:
@@ -509,5 +556,9 @@ def _get_tool_config_and_path(tool: str) -> tuple[dict[str, Any], str]:
 
 
 def get_tool_config(tool: str) -> dict[str, Any]:
-    """Return tool config only."""
+    """Return tool config for the named tool from the Jsonnet configuration.
+
+    Args:
+        tool: name of tool
+    """
     return _get_tool_config_and_path(tool)[0]

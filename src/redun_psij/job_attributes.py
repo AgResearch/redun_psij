@@ -11,7 +11,11 @@ class JobContext:
         self._context = list(context)
 
     def with_sub(self, sub: str) -> Self:
-        """Return a new sub-context by extending the previous with a new element."""
+        """Return a new sub-context by extending the previous with a new element.
+
+        Args:
+            sub: name of sub-context
+        """
         # must copy the existing context so we don't mutate it for others
         context = self._context.copy()
         context.append(sub)

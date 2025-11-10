@@ -7,3 +7,5 @@ __pycache__*
 /result*
 /*.json
 *.pickle
+/docs/build
+/docs/source/_generated

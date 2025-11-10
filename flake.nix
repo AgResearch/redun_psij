@@ -94,6 +94,9 @@
                     python-with-dependencies
                     python3Packages.flit
                     python3Packages.pytest
+                    python3Packages.sphinx
+                    python3Packages.sphinx_rtd_theme
+                    python3Packages.sphinx-autobuild
                     jsonnet
                   ];
 
@@ -112,11 +115,6 @@
           };
 
           apps = {
-            eri-install = {
-              type = "app";
-              program = "${eri-install}/bin/eri-install.gbs_prism";
-            };
-
             tests = let test-environment = python3.withPackages (ps: [ ps.pytest ]); in {
               type = "app";
               program = "${writeShellScript "redun-psij-tests" ''
