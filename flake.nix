@@ -27,10 +27,10 @@
             python3Packages.buildPythonPackage {
               name = "psij";
               src = pkgs.fetchFromGitHub {
-                owner = "ExaWorks";
+                owner = "tesujimath";
                 repo = "psij-python";
-                rev = "0.9.11";
-                hash = "sha256-Gp85E95ulIodp23d/LYK1Olinwv6zqb+p4fO6evnm3I=";
+                rev = "971149fe29f1292468aee1ced98318afeb27ca26"; # slurm-oom-reason
+                hash = "sha256-N4jG7rvWioAaqjDQtZIqNX3OY7CQ5rBkkxYT3/GKhyk=";
               };
 
               format = "setuptools";
