@@ -206,8 +206,16 @@ def _create_job_spec(
                 executable=spec.args[0],
                 arguments=spec.args[1:],
                 directory=spec.cwd or os.getcwd(),
-                stdout_path=spec.stdout_path,
-                stderr_path=spec.stderr_path,
+                stdout_path=(
+                    spec.stdout_path
+                    if os.path.isabs(spec.stdout_path)
+                    else os.path.join(os.getcwd(), spec.stdout_path)
+                ),
+                stderr_path=(
+                    spec.stderr_path
+                    if os.path.isabs(spec.stderr_path)
+                    else os.path.join(os.getcwd(), spec.stderr_path)
+                ),
                 attributes=job_attributes,
             ),
             executor_name,
