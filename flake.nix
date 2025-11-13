@@ -27,10 +27,10 @@
             python3Packages.buildPythonPackage {
               name = "psij";
               src = pkgs.fetchFromGitHub {
-                owner = "tesujimath";
+                owner = "ExaWorks";
                 repo = "psij-python";
-                rev = "971149fe29f1292468aee1ced98318afeb27ca26"; # slurm-oom-reason
-                hash = "sha256-N4jG7rvWioAaqjDQtZIqNX3OY7CQ5rBkkxYT3/GKhyk=";
+                rev = "de87be0eb1159c86ac601b3743ffb17ae7acb33c"; # Make failure to lookup Slurm reason description non-fatal
+                hash = "sha256-7rlul8U34bglgPW/RIpftHDjiedZVpOUTTcIR2CaeHg=";
               };
 
               format = "setuptools";
