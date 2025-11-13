@@ -102,7 +102,13 @@ class CommonJobSpec:
     """Path to file which captures stderr of the job."""
 
     cwd: Optional[str] = None
-    """Optional directory to change to before running the job."""
+    """Optional directory to change to before running the job.
+
+    If this is used, ensure that all paths in args are passed via os.path.abspath(), since relative paths
+    in args would otherwise be broken.
+
+    It is not necessary to make stdout_path nor stderr_path absolute, nor any in expected output, since the
+    executor handles these."""
 
     custom_attributes: dict[str, str] = field(default_factory=dict)
     """Custom attributes to pass to PSI/J, e.g. from :class:`redun_psij.JobContext`."""
