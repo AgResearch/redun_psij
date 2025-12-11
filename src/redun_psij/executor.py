@@ -9,6 +9,7 @@ from datetime import timedelta
 from enum import Enum
 from pathlib import Path
 from redun import File
+from redun.scheduler import apply_tags
 from psij import (
     Job,
     JobAttributes,
@@ -340,12 +341,12 @@ def _run_job_1(
                 _job_description(
                     job,
                     spec,
-                    annotation=f"failed to create {spec.expected_path}",
+                    annotation=f"job {job.native_id} failed to create {spec.expected_path}",
                     multiline=True,
                 )
             )
 
-        return File(spec.expected_path)
+        return _tag(File(spec.expected_path), job)
 
 
 def run_job_1(
@@ -404,7 +405,7 @@ def _result_files(
             _job_description(
                 job,
                 spec,
-                annotation="failed to create %s"
+                annotation="job {job.native_id} failed to create %s"
                 % ", ".join(
                     [f"{k}={path}" for (k, path) in missing_required_paths.items()]
                 ),
@@ -418,10 +419,10 @@ def _result_files(
             found_paths[k] = path
 
     return ResultFiles(
-        expected_files={k: File(path) for (k, path) in found_paths.items()},
+        expected_files={k: _tag(File(path), job) for (k, path) in found_paths.items()},
         globbed_files={
             k: [
-                File(path)
+                _tag(File(path), job)
                 for path in glob.glob(expected.glob)
                 if expected.reject_re is None
                 or re.search(expected.reject_re, path) is None
@@ -443,9 +444,9 @@ def _run_job_n(
     duplicate_expected_keys = (
         spec.expected_paths.required.keys() & spec.expected_paths.optional.keys()
     )
-    assert (
-        len(duplicate_expected_keys) == 0
-    ), f"duplicate expected keys: {', '.join(duplicate_expected_keys)}"
+    assert len(duplicate_expected_keys) == 0, (
+        f"duplicate expected keys: {', '.join(duplicate_expected_keys)}"
+    )
 
     job_spec, executor_name = _create_job_spec(
         spec=spec,
@@ -489,6 +490,10 @@ def run_job_n_returning_failure(
     return _run_job_n(spec, failure_handler=_FailureHandler.RETURN)
 
 
+def _tag(value: Any, job: Job) -> Any:
+    apply_tags(value, tags=[("psij_native_id", job.native_id)])
+
+
 def _deep_get(values: Any, path: str, default: Any = None) -> Any:
     for selector in path.split("."):
         values = values.get(selector)
@@ -521,9 +526,9 @@ class PsijExecutorConfig:
 
     @property
     def path(self) -> str:
-        assert (
-            self._path is not None
-        ), "PsijExecutorConfig is not configured, need an early call to read_config()"
+        assert self._path is not None, (
+            "PsijExecutorConfig is not configured, need an early call to read_config()"
+        )
 
         return self._path
 
