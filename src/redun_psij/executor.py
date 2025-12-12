@@ -360,7 +360,7 @@ def run_job_1(
         spec: defines the job parameters
     """
     result = _run_job_1(spec, failure_handler=_FailureHandler.EXCEPTION)
-    assert isinstance(result, File)
+    assert isinstance(result, File), f"expected File, got {type(result).__name__}"
     return result
 
 
