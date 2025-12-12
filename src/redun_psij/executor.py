@@ -492,6 +492,7 @@ def run_job_n_returning_failure(
 
 def _tag(value: Any, job: Job) -> Any:
     apply_tags(value, tags=[("psij_native_id", job.native_id)])
+    return value
 
 
 def _deep_get(values: Any, path: str, default: Any = None) -> Any:
