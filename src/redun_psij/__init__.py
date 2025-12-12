@@ -15,6 +15,7 @@ from .executor import (
     run_job_1_returning_failure,
     run_job_n,
     run_job_n_returning_failure,
+    run_tagged_job_1,
 )
 
 from .job_attributes import JobContext
@@ -35,4 +36,5 @@ __all__ = [
     "run_job_1_returning_failure",
     "run_job_n",
     "run_job_n_returning_failure",
+    "run_tagged_job_1",
 ]

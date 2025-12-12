@@ -159,6 +159,9 @@ class JobNSpec(CommonJobSpec):
     """Expected output files whose paths are globbed after the event."""
 
 
+type JobTags = list[tuple[str, str]]
+
+
 def _create_job_attributes(
     configured_attributes: dict[str, Any],
     extra_custom_attributes: dict[str, str],
@@ -319,7 +322,7 @@ def _handle_failure(
 def _run_job_1(
     spec: Job1Spec,
     failure_handler: _FailureHandler,
-) -> File | JobFailure:
+) -> tuple[File | JobFailure, JobTags]:
     """
     Run a job which is expected to produce the single file `expected_path`
     """
@@ -333,19 +336,20 @@ def _run_job_1(
     status = job.wait()
     failure = _handle_failure(job, status, spec, failure_handler=failure_handler)
     if failure is not None:
-        return failure
+        return (failure, [])
     else:
         if not os.path.exists(spec.expected_path):
             raise JobError(
                 _job_description(
                     job,
                     spec,
-                    annotation=f"failed to create {spec.expected_path}",
+                    annotation=f"job {job.native_id} failed to create {spec.expected_path}",
                     multiline=True,
                 )
             )
 
-        return File(spec.expected_path)
+        tags = [("psij_native_id", job.native_id if job.native_id is not None else "")]
+        return (File(spec.expected_path), tags)
 
 
 def run_job_1(
@@ -358,9 +362,24 @@ def run_job_1(
     Args:
         spec: defines the job parameters
     """
-    result = _run_job_1(spec, failure_handler=_FailureHandler.EXCEPTION)
+    result, _ = _run_job_1(spec, failure_handler=_FailureHandler.EXCEPTION)
     assert isinstance(result, File)
     return result
+
+
+def run_tagged_job_1(
+    spec: Job1Spec,
+) -> tuple[File, JobTags]:
+    """
+    Run a job which is expected to produce the single file `expected_path`
+    Errors are thrown as :class:`redun_psij.JobError`.
+
+    Args:
+        spec: defines the job parameters
+    """
+    result, tags = _run_job_1(spec, failure_handler=_FailureHandler.EXCEPTION)
+    assert isinstance(result, File)
+    return (result, tags)
 
 
 def run_job_1_returning_failure(
@@ -373,7 +392,8 @@ def run_job_1_returning_failure(
     Args:
         spec: defines the job parameters
     """
-    return _run_job_1(spec, failure_handler=_FailureHandler.RETURN)
+    result, _ = _run_job_1(spec, failure_handler=_FailureHandler.RETURN)
+    return result
 
 
 @dataclass
@@ -404,7 +424,7 @@ def _result_files(
             _job_description(
                 job,
                 spec,
-                annotation="failed to create %s"
+                annotation="job {job.native_id} failed to create %s"
                 % ", ".join(
                     [f"{k}={path}" for (k, path) in missing_required_paths.items()]
                 ),
@@ -443,9 +463,9 @@ def _run_job_n(
     duplicate_expected_keys = (
         spec.expected_paths.required.keys() & spec.expected_paths.optional.keys()
     )
-    assert (
-        len(duplicate_expected_keys) == 0
-    ), f"duplicate expected keys: {', '.join(duplicate_expected_keys)}"
+    assert len(duplicate_expected_keys) == 0, (
+        f"duplicate expected keys: {', '.join(duplicate_expected_keys)}"
+    )
 
     job_spec, executor_name = _create_job_spec(
         spec=spec,
@@ -521,9 +541,9 @@ class PsijExecutorConfig:
 
     @property
     def path(self) -> str:
-        assert (
-            self._path is not None
-        ), "PsijExecutorConfig is not configured, need an early call to read_config()"
+        assert self._path is not None, (
+            "PsijExecutorConfig is not configured, need an early call to read_config()"
+        )
 
         return self._path
 
